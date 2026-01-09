@@ -1,0 +1,23 @@
+{
+    "applications": [
+        {
+            "name": "django-react-app",
+            "description": "Main Django and React application",
+            "containers": [
+                "backend",
+                "frontend",
+                "redis",
+                "db"
+            ],
+            "database": {
+                "type": "postgresql",
+                "container": "db",
+                "database": "myapp_db",
+                "username": "postgres",
+                "password": "your-db-password",
+                "backupSchedule": "0 2 * * *",
+                "retentionDays": 7
+            }
+        }
+    ]
+}

@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  server-monitor:
+    build: .
+    container_name: server-monitor
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      # Mount Docker socket to monitor containers
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Persist backups
+      - ./backups:/app/backups
+      # Persist logs
+      - ./logs:/app/logs
+      # Mount configuration
+      - ./config:/app/config:ro
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - API_KEY=${API_KEY:-your-secure-api-key-here}
+      - BACKUP_DIR=/app/backups
+      - LOG_DIR=/app/logs
+    networks:
+      - monitoring
+
+networks:
+  monitoring:
+    driver: bridge
