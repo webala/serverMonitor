@@ -1,20 +1,20 @@
 {
     "applications": [
         {
-            "name": "django-react-app",
-            "description": "Main Django and React application",
+            "name": "pos-staging",
+            "description": "POSaaS Staging Environment",
             "containers": [
-                "backend",
-                "frontend",
-                "redis",
-                "db"
+                "posaas_backend_staging",
+                "posaas_frontend_staging",
+                "posaas_redis_staging",
+                "posaas_db_staging"
             ],
             "database": {
                 "type": "postgresql",
-                "container": "db",
-                "database": "myapp_db",
-                "username": "postgres",
-                "password": "your-db-password",
+                "container": "posaas_db_staging",
+                "database": "posaas_db",
+                "username": "webzz",
+                "password": "superSecretPassword",
                 "backupSchedule": "0 2 * * *",
                 "retentionDays": 7
             }

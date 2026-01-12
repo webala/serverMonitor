@@ -14,3 +14,4 @@ backups/
 *.swp
 *.swo
 *~
+docker-files-ref/
