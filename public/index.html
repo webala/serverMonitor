@@ -274,6 +274,14 @@
                             <span class="metric-label">Total</span>
                             <span class="metric-value">${formatBytes(system.memory.total)}</span>
                         </div>
+                        <div class="metric">
+                            <span class="metric-label">Cached</span>
+                            <span class="metric-value">${formatBytes(system.memory.cached)}</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Available</span>
+                            <span class="metric-value">${formatBytes(system.memory.available)}</span>
+                        </div>
                         <div class="progress-bar">
                             <div class="progress-fill" style="width: ${system.memory.usedPercentage}%"></div>
                         </div>

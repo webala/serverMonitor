@@ -19,10 +19,11 @@ class SystemMonitor {
             return {
                 total: mem.total,
                 free: mem.free,
-                used: mem.used,
+                used: mem.active, // Use active memory as "used" to match user expectation (excludes cache)
                 active: mem.active,
                 available: mem.available,
-                usedPercentage: ((mem.used / mem.total) * 100).toFixed(2),
+                cached: mem.buffcache,
+                usedPercentage: ((mem.active / mem.total) * 100).toFixed(2),
                 freePercentage: ((mem.free / mem.total) * 100).toFixed(2),
                 swapTotal: mem.swaptotal,
                 swapUsed: mem.swapused,
