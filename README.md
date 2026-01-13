@@ -24,18 +24,21 @@ A comprehensive Node.js microservice for monitoring server resources, Docker con
 ### Using Docker (Recommended)
 
 1. **Clone and configure**:
+
 ```bash
 cd /path/to/serverMonitor
 cp .env.example .env
 ```
 
 2. **Edit `.env` file**:
+
 ```bash
 nano .env
 # Set your API_KEY and other preferences
 ```
 
 3. **Configure applications** in `config/applications.json`:
+
 ```json
 {
   "applications": [
@@ -58,38 +61,45 @@ nano .env
 ```
 
 4. **Start the service**:
+
 ```bash
 docker-compose up -d
 ```
 
 5. **Access the dashboard**:
+
 - Dashboard: http://your-server:3000
 - API: http://your-server:3000/api
 
 ### Using Node.js Directly
 
 1. **Install dependencies**:
+
 ```bash
 npm install
 ```
 
 2. **Configure environment**:
+
 ```bash
 cp .env.example .env
 nano .env
 ```
 
 3. **Configure applications**:
+
 ```bash
 nano config/applications.json
 ```
 
 4. **Start the service**:
+
 ```bash
 npm start
 ```
 
 For development with auto-reload:
+
 ```bash
 npm run dev
 ```
@@ -98,15 +108,15 @@ npm run dev
 
 ### Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `API_KEY` | API authentication key | `your-secure-api-key-here` |
-| `PORT` | Server port | `3000` |
-| `NODE_ENV` | Environment (development/production) | `development` |
-| `BACKUP_DIR` | Backup storage directory | `./backups` |
-| `DEFAULT_BACKUP_SCHEDULE` | Default cron schedule | `0 2 * * *` (2 AM daily) |
-| `DEFAULT_RETENTION_DAYS` | Default backup retention | `7` |
-| `LOG_LEVEL` | Logging level | `info` |
+| Variable                  | Description                          | Default                    |
+| ------------------------- | ------------------------------------ | -------------------------- |
+| `API_KEY`                 | API authentication key               | `your-secure-api-key-here` |
+| `PORT`                    | Server port                          | `3000`                     |
+| `NODE_ENV`                | Environment (development/production) | `development`              |
+| `BACKUP_DIR`              | Backup storage directory             | `./backups`                |
+| `DEFAULT_BACKUP_SCHEDULE` | Default cron schedule                | `0 2 * * *` (2 AM daily)   |
+| `DEFAULT_RETENTION_DAYS`  | Default backup retention             | `7`                        |
+| `LOG_LEVEL`               | Logging level                        | `info`                     |
 
 ### Application Configuration
 
@@ -134,6 +144,7 @@ Edit `config/applications.json` to define your applications:
 ```
 
 **Cron Schedule Examples**:
+
 - `0 2 * * *` - Daily at 2:00 AM
 - `0 */6 * * *` - Every 6 hours
 - `0 0,12 * * *` - Twice daily (midnight and noon)
@@ -146,6 +157,7 @@ All API endpoints require the `X-API-Key` header with your configured API key.
 ### Monitoring Endpoints
 
 #### System Metrics
+
 ```bash
 # Get all system metrics
 GET /api/system
@@ -164,6 +176,7 @@ GET /api/network
 ```
 
 #### Application Monitoring
+
 ```bash
 # List all applications
 GET /api/applications
@@ -176,6 +189,7 @@ GET /api/applications/:appName/containers
 ```
 
 #### Docker Monitoring
+
 ```bash
 # Get all containers
 GET /api/docker/containers
@@ -228,6 +242,7 @@ curl -H "X-API-Key: your-api-key" http://localhost:3000/api/backup/list
 Access the web dashboard at `http://your-server:3000`. You'll be prompted for the API key.
 
 The dashboard displays:
+
 - Real-time system metrics (CPU, memory, disk, network)
 - Docker container status
 - Per-application metrics and container details
@@ -237,11 +252,13 @@ The dashboard displays:
 ## Deployment on Ubuntu Server
 
 1. **SSH into your Contabo server**:
+
 ```bash
 ssh user@your-server-ip
 ```
 
 2. **Clone the repository**:
+
 ```bash
 cd /opt
 git clone <your-repo-url> server-monitor
@@ -249,6 +266,7 @@ cd server-monitor
 ```
 
 3. **Configure the service**:
+
 ```bash
 cp .env.example .env
 nano .env  # Set your API_KEY and preferences
@@ -257,43 +275,76 @@ nano config/applications.json  # Configure your applications
 ```
 
 4. **Start with Docker Compose**:
+
 ```bash
 docker-compose up -d
 ```
 
 5. **Check logs**:
+
 ```bash
 docker-compose logs -f
 ```
 
 6. **Access the dashboard**:
+
 ```
 http://your-server-ip:3000
 ```
 
-### Optional: Setup Nginx Reverse Proxy
+## Nginx Configuration
 
-```nginx
-server {
-    listen 80;
-    server_name monitor.yourdomain.com;
+To serve the dashboard securely on your domain (e.g., `monitor.yourdomain.com`), use Nginx as a reverse proxy.
 
-    location / {
-        proxy_pass http://localhost:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
-    }
-}
-```
+1. **Create an Nginx configuration file**:
+
+   ```bash
+   sudo nano /etc/nginx/sites-available/server-monitor
+   ```
+
+2. **Add the following configuration**:
+
+   ```nginx
+   server {
+       listen 80;
+       server_name monitor.yourdomain.com;
+
+       location / {
+           proxy_pass http://127.0.0.1:3000;
+           proxy_http_version 1.1;
+           proxy_set_header Upgrade $http_upgrade;
+           proxy_set_header Connection 'upgrade';
+           proxy_set_header Host $host;
+           proxy_cache_bypass $http_upgrade;
+
+           # Forward real IP to the application
+           proxy_set_header X-Real-IP $remote_addr;
+           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+       }
+   }
+   ```
+
+3. **Enable the site and restart Nginx**:
+
+   ```bash
+   sudo ln -s /etc/nginx/sites-available/server-monitor /etc/nginx/sites-enabled/
+   sudo nginx -t
+   sudo systemctl restart nginx
+   ```
+
+4. **Enable HTTPS (Recommended)**:
+   Use Certbot to automatically configure SSL:
+   ```bash
+   sudo apt install certbot python3-certbot-nginx
+   sudo certbot --nginx -d monitor.yourdomain.com
+   ```
 
 ## Adding New Applications
 
 To monitor a new application:
 
 1. **Edit `config/applications.json`**:
+
 ```json
 {
   "applications": [
@@ -317,6 +368,7 @@ To monitor a new application:
 ```
 
 2. **Restart the service**:
+
 ```bash
 docker-compose restart
 ```
@@ -326,38 +378,46 @@ The new application will be automatically monitored and backed up according to i
 ## Backup Management
 
 ### Backup Location
+
 Backups are stored in `./backups/{application-name}/` by default.
 
 ### Manual Backup
+
 ```bash
 curl -X POST -H "X-API-Key: your-key" http://localhost:3000/api/backup/create/app-name
 ```
 
 ### Restore Backup
+
 ```bash
 curl -X POST -H "X-API-Key: your-key" \
   http://localhost:3000/api/backup/restore/app-name/backup-filename.sql.gz
 ```
 
 ### Backup Retention
+
 Old backups are automatically deleted based on the `retentionDays` setting for each application.
 
 ## Troubleshooting
 
 ### Cannot connect to Docker
+
 - Ensure Docker socket is mounted: `-v /var/run/docker.sock:/var/run/docker.sock`
 - Check Docker socket permissions
 
 ### Backup fails
+
 - Verify database container name is correct
 - Check database credentials in `applications.json`
 - Ensure database client tools are installed (included in Docker image)
 
 ### API returns 401 Unauthorized
+
 - Verify `X-API-Key` header is set correctly
 - Check API_KEY in `.env` file
 
 ### Dashboard not loading
+
 - Check browser console for errors
 - Verify API_KEY is correct when prompted
 - Ensure the service is running: `docker-compose ps`
@@ -365,10 +425,12 @@ Old backups are automatically deleted based on the `retentionDays` setting for e
 ## Logs
 
 Logs are stored in `./logs/`:
+
 - `combined.log` - All logs
 - `error.log` - Error logs only
 
 View logs:
+
 ```bash
 # Docker
 docker-compose logs -f
